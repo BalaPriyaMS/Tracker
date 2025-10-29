@@ -1,8 +1,16 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { TrackLayout } from "./app/layouts/track-layout";
-import { Tracker } from "./modules/trak/traker";
+import { Suspense } from "react";
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  RouterProvider,
+} from "react-router-dom";
+
 import { AuthLayout } from "./app/layouts/auth-layout";
+import { TrackLayout } from "./app/layouts/track-layout";
 import { LoginPage } from "./modules/auth/login-page";
+import { RegisterPage } from "./modules/auth/register-page";
+import { Tracker } from "./modules/trak/traker";
 
 const router = createBrowserRouter([
   {
@@ -12,11 +20,25 @@ const router = createBrowserRouter([
   },
   {
     path: "/auth",
-    element: <AuthLayout />,
+    element: (
+      <Suspense>
+        <AuthLayout>
+          <Outlet />
+        </AuthLayout>
+      </Suspense>
+    ),
     children: [
+      {
+        path: "",
+        element: <Navigate to="login" replace />,
+      },
       {
         path: "login",
         element: <LoginPage />,
+      },
+      {
+        path: "register",
+        element: <RegisterPage />,
       },
     ],
   },
