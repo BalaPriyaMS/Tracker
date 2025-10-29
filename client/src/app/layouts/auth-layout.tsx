@@ -1,3 +1,5 @@
+import "react-slideshow-image/dist/styles.css";
+
 import { Fade } from "react-slideshow-image";
 
 import img1 from "../../assets/img1.jpg";
@@ -15,14 +17,34 @@ const images = [
 ];
 export const AuthLayout = ({ children }: LayoutProps) => {
   return (
-    <div className="flex w-full min-h-screen">
-      <div className="size-full">
-        {children}
-        <Fade>
-          {images.map((img, index) => (
-            <img key={index} src={img.url} alt={img.caption} />
-          ))}
-        </Fade>
+    <div
+      className="flex flex-col w-full min-h-screen"
+      style={{
+        background:
+          "linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(73, 127, 220, 0.2))",
+        backdropFilter: "blur(25px)",
+        WebkitBackdropFilter: "blur(25px)",
+        color: "#497FDC",
+      }}
+    >
+      <div className="flex w-full h-screen">
+        <div className="relative flex justify-center items-center w-1/2">
+          {children}
+        </div>
+        <div className="m-4 w-1/2">
+          <div className="rounded-lg h-full overflow-hidden">
+            <Fade arrows={false} duration={3000} autoplay>
+              {images.map((img, index) => (
+                <img
+                  className="size-full object-cover"
+                  key={index}
+                  src={img.url}
+                  alt={img.caption}
+                />
+              ))}
+            </Fade>
+          </div>
+        </div>
       </div>
     </div>
   );
