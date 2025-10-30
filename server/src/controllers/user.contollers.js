@@ -25,16 +25,16 @@ export const registerUser = async(req, res) => {
     }
 };
 
-export const loginUser = async (req,res) => {
+export const signInByEmailId = async (req,res) => {
 
   try{
     const{email, password} = req.body;
-    const resp = await UserService.loginUserService(email, password)
+    const resp = await UserService.signInByEmailIdService(email, password)
 
     return generalResponse(res,{
       statusCode: httpStatus.OK,
       err:null,
-      data: userData,
+      data: null,
       mssg: resp.message ||"login successfully"
     });
   } catch(err){

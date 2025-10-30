@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as utils from "../utils/utils.js"
-import { registerUser, checkUserByEmail, forgetPassword } from "../controllers/user.contollers.js";
+import { registerUser, checkUserByEmail, forgetPassword, signInByEmailId } from "../controllers/user.contollers.js";
 
 const router = Router()
 
@@ -11,6 +11,10 @@ router.post('/create', function(req, res, next){
 router.post('/check', function(req, res, next){
     utils.reqArgValidation(req, res, next, ["email"]);
 }, checkUserByEmail);
+
+router.post('/email/login',function(req, res, next){
+    utils.reqArgValidation(req, res, next, ["email", "password"]);
+}, signInByEmailId);
 
 router.post('/auth/reset-password', function(req, res, next){
     utils.reqArgValidation(req, res, next, ["email", "newpassword", "confirmpassword"]);

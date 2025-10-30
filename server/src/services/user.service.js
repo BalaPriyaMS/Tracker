@@ -33,7 +33,7 @@ export const registerUserService = async(username, email, password, mobile) => {
 
 export const signInByEmailIdService = async (email, password) => {
   try {
-    const query = "SELECT password FROM user WHERE email = ?";
+    const query = "SELECT password FROM users WHERE email = ?";
     const rows = await queryReturn(query, [email]);
 
     const isMatched = checkPassword(password, rows[0].password);
@@ -65,7 +65,7 @@ export const signInByMobileService = async (mobile) => {
 
 export const checkUserByEmailService = async(email) => {
     try{
-        const query = "SELECT email FROM user WHERE email=?";
+        const query = "SELECT email FROM users WHERE email=?";
         const row = await queryReturn(query, [email])
         if (row.length === 0) {
             const err = new Error("User not found with provided email");
@@ -90,7 +90,7 @@ export const forgetPasswordService = async (email, newPassword, confirmPassword)
 
         const hashPsswd = hashPassword(newPassword);
 
-        const query = "UPDATE user SET password = ? WHERE email = ?";
+        const query = "UPDATE users SET password = ? WHERE email = ?";
         const result = await queryReturn(query, [hashPsswd, email]);
 
         if (result.affectedRows === 0) {
