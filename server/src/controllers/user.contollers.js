@@ -48,16 +48,16 @@ export const signInByEmailId = async (req,res) => {
   }
 };
 
-export const checkUserByEmail = async (req, res) => {
+export const checkUserByEmailOrMobile = async (req, res) => {
   
   try {
-    const { email } = req.body;
-    const response = await UserService.checkUserByEmailService(email);
+    const { identifier } = req.body;
+    const response = await UserService.checkUserByEmailOrMobileService(identifier);
 
     return generalResponse(res, {
       statusCode: httpStatus.OK,
       err: null,
-      data: response.data || { email },
+      data: null,
       mssg: response.message || "User found"
     });
   } catch (err) {

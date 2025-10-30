@@ -63,12 +63,18 @@ export const signInByMobileService = async (mobile) => {
 }
 
 
-export const checkUserByEmailService = async(email) => {
+export const checkUserByEmailOrMobileService = async(identifier) => {
     try{
-        const query = "SELECT email FROM users WHERE email=?";
-        const row = await queryReturn(query, [email])
+        let query
+        if (identifier.includes('@')){
+            query = "SELECT email FROM users WHERE email=?";
+        } else {
+            query = "SELECT mobile FROM users WHERE mobile=?";
+        }
+
+        const row = await queryReturn(query, [identifier])
         if (row.length === 0) {
-            const err = new Error("User not found with provided email");
+            const err = new Error("User not found ");
             err.statusCode = 404;
             throw err;
         }
@@ -76,7 +82,7 @@ export const checkUserByEmailService = async(email) => {
             message:"user found"
         }
     } catch (err){
-        logger.error("Error in checkUserByEmailService", err);
+        logger.error("Error in checkUserByEmailServiceOrMobile", err);
         throw err;
     }
 };
