@@ -8,8 +8,10 @@ import {
 
 import { AuthLayout } from "./app/layouts/auth-layout";
 import { TrackLayout } from "./app/layouts/track-layout";
-import { LoginPage } from "./modules/auth/login-page";
+
 import { RegisterPage } from "./modules/auth/register-page";
+import { ForgotPassword } from "./modules/auth/route/forgot-password";
+import { LoginPage } from "./modules/auth/route/login-page";
 import { Tracker } from "./modules/trak/traker";
 
 const router = createBrowserRouter([
@@ -40,6 +42,7 @@ const router = createBrowserRouter([
         path: "register",
         element: <RegisterPage />,
       },
+      { path: "forgot-password", element: <ForgotPassword /> },
     ],
   },
 ]);

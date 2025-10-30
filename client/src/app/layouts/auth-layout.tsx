@@ -17,16 +17,7 @@ const images = [
 ];
 export const AuthLayout = ({ children }: LayoutProps) => {
   return (
-    <div
-      className="flex flex-col w-full min-h-screen"
-      style={{
-        background:
-          "linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(73, 127, 220, 0.2))",
-        backdropFilter: "blur(25px)",
-        WebkitBackdropFilter: "blur(25px)",
-        color: "#497FDC",
-      }}
-    >
+    <div className="flex flex-col w-full min-h-screen">
       <div className="flex w-full h-screen">
         <div className="relative flex justify-center items-center w-1/2">
           {children}
