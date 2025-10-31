@@ -148,7 +148,7 @@ export const LoginPage = () => {
                             />
                           </FormControl>
                           <FormMessage />
-                          <Link to="../forgot-password">Forgot Password</Link>
+                          <Link to="../forgot-password">Forgot Password ?</Link>
                         </FormItem>
                       )}
                     ></FormField>
@@ -158,7 +158,7 @@ export const LoginPage = () => {
                       name="otp"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Otp</FormLabel>
+                          <FormLabel>One-Time Password</FormLabel>
                           <FormControl>
                             <InputOTP maxLength={6} {...field}>
                               <InputOTPGroup className="gap-2">
@@ -172,6 +172,19 @@ export const LoginPage = () => {
                               </InputOTPGroup>
                             </InputOTP>
                           </FormControl>
+                          <div className="flex justify-between items-center">
+                            <Button
+                              type="button"
+                              variant="link"
+                              className="p-0"
+                            >
+                              Resend OTP
+                            </Button>
+
+                            <p className="text-muted-foreground text-sm">
+                              time
+                            </p>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}

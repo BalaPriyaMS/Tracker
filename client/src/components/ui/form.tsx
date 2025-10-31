@@ -1,21 +1,20 @@
 "use client";
 
+import * as LabelPrimitive from "@radix-ui/react-label";
+import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import {
   Controller,
-  ControllerProps,
-  FieldPath,
-  FieldValues,
   FormProvider,
-  type,
   useFormContext,
   useFormState,
+  type ControllerProps,
+  type FieldPath,
+  type FieldValues,
 } from "react-hook-form";
 
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import * as LabelPrimitive from "@radix-ui/react-label";
-import { Slot } from "@radix-ui/react-slot";
 
 const Form = FormProvider;
 
@@ -165,5 +164,6 @@ export {
   FormItem,
   FormLabel,
   FormMessage,
+  // eslint-disable-next-line react-refresh/only-export-components
   useFormField,
 };
