@@ -14,7 +14,7 @@ export type ValidateContactInput = z.infer<typeof validateContactInputSchema>;
 export const validateContact = async (
   payload: ValidateContactInput
 ): Promise<ValidateContactResponse> => {
-  const res = await api.post("/user/check", payload);
+  const res = await api.post("/auth/check", payload);
   return res.data;
 };
 
