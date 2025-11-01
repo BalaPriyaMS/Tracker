@@ -1,6 +1,9 @@
 import httpStatus from "http-status-codes";
 import bcrypt from "bcrypt";
-import otpGenerator from "otp-generator"
+import otpGenerator from "otp-generator";
+import twilio from "twilio"
+import { logger } from "../common/logger.js";
+import axios from "axios";
 
 export const generalResponse = (res, resObject) => {
     if (resObject.err){
@@ -8,7 +11,7 @@ export const generalResponse = (res, resObject) => {
          .status( resObject.statusCode || httpStatus.INTERNAL_SERVER_ERROR)
          .json({
             status:"Failure",
-            data: null,
+            data: resObject.data || null,
             err: resObject.err || null,
             mssg: resObject.mssg || null
          }) ;
@@ -49,7 +52,35 @@ export const reqArgValidation = (req, res, next, args) => {
     next();
 }
 
-export const generateOTP = () => {
-    const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
-    return otp
-}
+
+
+export const sendOTPViaSMS = async (mobile) => {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+
+  try {
+    const client = twilio(accountSid, authToken);
+
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,   
+      specialChars: false,
+      digits: true,
+    });
+
+    const message = await client.messages.create({
+      body: `Your login OTP for tracker is ${otp}. It is valid for 2 minutes.`,
+      from: twilioPhone,      
+      to: `+91${mobile}`,
+    });
+
+    logger.info(`OTP sent successfully to ${mobile}, SID: ${message.sid}`);
+
+    return otp;
+
+  } catch (error) {
+    logger.error("Error sending OTP:", error.response?.data || error.message);
+    throw new Error("Failed to send OTP");
+  }
+};
