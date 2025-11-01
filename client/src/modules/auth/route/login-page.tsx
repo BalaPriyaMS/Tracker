@@ -22,6 +22,8 @@ import {
 import { PasswordInput } from "@/components/ui/password-input";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { useValidateContact } from "../api/validate-contact";
+
 const emailSignInInputSchema = z.object({
   email: z
     .string()
@@ -70,6 +72,8 @@ export const LoginPage = () => {
   const [stepNo, setStepNo] = useState(1);
   const [contactType, setContactType] = useState("email");
 
+  const { mutateAsync: validateContact } = useValidateContact();
+
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -84,6 +88,10 @@ export const LoginPage = () => {
   const handleContinue = async () => {
     const isValid = await form.trigger("contact");
     if (!isValid) return;
+    const contact = form.getValues("contact");
+
+    const res = await validateContact({ contact });
+    console.log(res, "api res");
 
     const contactMobile = "6385609320" === form.getValues("contact");
     const contactEmail =
