@@ -3,27 +3,30 @@ import bcrypt from "bcrypt";
 import otpGenerator from "otp-generator";
 import twilio from "twilio"
 import { logger } from "../common/logger.js";
-import axios from "axios";
+import jwt from "jsonwebtoken"
+import nodemailer from "nodemailer";
 
 export const generalResponse = (res, resObject) => {
-    if (resObject.err){
-        return res
-         .status( resObject.statusCode || httpStatus.INTERNAL_SERVER_ERROR)
-         .json({
-            status:"Failure",
-            data: resObject.data || null,
-            err: resObject.err || null,
-            mssg: resObject.mssg || null
-         }) ;
-    }
-    return res.status( resObject.statusCode || httpStatus.OK)
-     .json({
-        status:"Success",
-        data: resObject.data || null,
-        err: null,
-        mssg: resObject.mssg || null
-     });
-}
+  const { statusCode, err, data, message } = resObject;
+
+  if (err) {
+    return res.status(statusCode || 500).json({
+      success: false,
+      statusCode: statusCode || 500,
+      error: err,
+      data: data || null,
+      message: message || "Failure",
+    });
+  }
+
+  return res.status(statusCode || 200).json({
+    success: true,
+    statusCode: statusCode || 200,
+    data: data || null,
+    message: message || "Success",
+  });
+};
+
 
 export const hashPassword = (paswd) => {
     const saltRounds = 10;
@@ -84,3 +87,27 @@ export const sendOTPViaSMS = async (mobile) => {
     throw new Error("Failed to send OTP");
   }
 };
+
+export const generateAccessToken = (payload, expire) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: expire,
+  });
+};
+
+export const sendMail = async (mailOptions) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error("Error in sendMail:", err);
+    throw err;
+  }
+};
+
