@@ -12,7 +12,7 @@ import {
 
 const router = Router()
 
-router.post('/usercheck', function(req, res, next){
+router.post('/user/check', function(req, res, next){
     utils.reqArgValidation(req, res, next, ["contact"]);
 }, checkUserByEmailOrMobile);
 
