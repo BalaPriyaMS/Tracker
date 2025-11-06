@@ -1,5 +1,4 @@
 interface ValidateContactResponse {
-  status: string;
-  err: string;
-  mssg: "string";
+  isActive: boolean;
+  type: string;
 }

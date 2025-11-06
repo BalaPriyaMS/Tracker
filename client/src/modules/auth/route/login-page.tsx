@@ -22,22 +22,8 @@ import {
 import { PasswordInput } from "@/components/ui/password-input";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { emailSignInInputSchema, useEmailLogin } from "../api/emial.login";
 import { useValidateContact } from "../api/validate-contact";
-
-const emailSignInInputSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Please enter your email.")
-    .email("Please give a valid email."),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password must not exceed 128 characters")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\-_])[A-Za-z\d!@#\-_]/,
-      "Password must include uppercase letters, lowercase letters, numbers, and special characters: !@#-_"
-    ),
-});
 
 const mobileSignInInputSchema = z.object({
   mobile: z
@@ -73,6 +59,7 @@ export const LoginPage = () => {
   const [contactType, setContactType] = useState("email");
 
   const { mutateAsync: validateContact } = useValidateContact();
+  const { mutateAsync: emailLogin } = useEmailLogin();
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -91,23 +78,26 @@ export const LoginPage = () => {
     const contact = form.getValues("contact");
 
     const res = await validateContact({ contact });
-    console.log(res, "api res");
 
-    const contactMobile = "6385609320" === form.getValues("contact");
-    const contactEmail =
-      "balapriya1701@gmail.com" === form.getValues("contact");
-
-    if (contactMobile || contactEmail) {
+    if (res.isActive) {
       setStepNo(2);
-      if (contactMobile) {
+      if (res.type === "mobile") {
         setContactType("mobile");
       }
-      if (contactEmail) {
+      if (res.type === "email") {
         setContactType("email");
       }
     } else form.setError("contact", { message: "user not fount" });
   };
+  const handleLogin = async () => {
+    const data = form.getValues();
+    if (contactType === "email") {
+      console.log(data.email, "mail");
 
+      const payload = { email: data.contact, password: data.password };
+      await emailLogin(payload);
+    } else form.setError("password", { message: "Invalid Password" });
+  };
   return (
     <div className="flex justify-center bg-white rounded-lg w-1/2">
       <Card className="bg-gradient-to-br from-[#fef2f2] via-[#ffedd4] to-[#ffc9c9] shadow-none m-1 p-10 border-none w-full h-96">
@@ -198,7 +188,9 @@ export const LoginPage = () => {
                       )}
                     ></FormField>
                   )}
-                  <Button className="w-full">Log In</Button>
+                  <Button className="w-full" onClick={handleLogin}>
+                    Log In
+                  </Button>
                 </>
               )}
             </form>
