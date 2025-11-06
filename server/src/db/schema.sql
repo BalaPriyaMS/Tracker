@@ -21,3 +21,13 @@ CREATE TABLE IF NOT EXISTS userroles (
     FOREIGN KEY (roleid) REFERENCES roles(roleid) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS invitelinks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(300) NOT NULL UNIQUE,
+    linktoken TEXT NOT NULL,
+    invitedby VARCHAR(36) NOT NULL,
+    isUsed BOOLEAN NOT NULL DEFAULT FALSE,
+    createdat BIGINT NOT NULL,
+    FOREIGN KEY (invitedby) REFERENCES users(userid) ON DELETE CASCADE
+);
+

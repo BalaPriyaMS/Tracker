@@ -9,6 +9,7 @@ export const checkUserByEmailOrMobile = async (req, res) => {
     const response = await AuthService.checkUserByEmailOrMobileService(contact);
     return generalResponse(res, {
       statusCode: httpStatus.OK,
+      err: null,
       data: response.data,
       message: response.message || "User found"
     });
@@ -91,6 +92,7 @@ export const changePassword = async (req, res) => {
 
     return generalResponse(res, {
       statusCode: httpStatus.OK,
+      err:null,
       data: null,
       mssg: resp.message 
     });
@@ -107,10 +109,11 @@ export const changePassword = async (req, res) => {
 export const sentInvite = async (req, res) => {
   try{
     const { email: targetEmail } = req.body;
-    const { userid } = req.user.userid; 
+    const { userid } = req.user; 
     const resp = await AuthService.sendInviteServices(targetEmail,userid);
     return generalResponse(res, {
       statusCode: resp.statusCode || httpStatus.OK,
+      err:null,
       data: resp.data || null,
       message: resp.message || "Login attempt",
     });
@@ -119,7 +122,7 @@ export const sentInvite = async (req, res) => {
       statusCode: err.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
       err: err.message || "Unexpected error occurred",
       data: null,
-      message: "Failed to login",
+      message: "Failed to sent invite",
     });
   }
 }
