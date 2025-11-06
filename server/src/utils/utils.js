@@ -5,14 +5,13 @@ import twilio from "twilio"
 import { logger } from "../common/logger.js";
 import jwt from "jsonwebtoken"
 import nodemailer from "nodemailer";
+import { queryReturn } from "../config/mysqlconfig.js";
 
 export const generalResponse = (res, resObject) => {
   const { statusCode, err, data, message } = resObject;
 
   if (err) {
     return res.status(statusCode || 500).json({
-      success: false,
-      statusCode: statusCode || 500,
       error: err,
       data: data || null,
       message: message || "Failure",
@@ -20,8 +19,7 @@ export const generalResponse = (res, resObject) => {
   }
 
   return res.status(statusCode || 200).json({
-    success: true,
-    statusCode: statusCode || 200,
+    error: err,
     data: data || null,
     message: message || "Success",
   });
@@ -106,8 +104,18 @@ export const sendMail = async (mailOptions) => {
 
     await transporter.sendMail(mailOptions);
   } catch (err) {
-    console.error("Error in sendMail:", err);
+    logger.error("Error in sendMail:", err);
     throw err;
   }
 };
+
+export const isUserExists = async (email) => {
+  const query = "SELECT userid FROM users WHERE email = ?";
+  const rows = queryReturn(query, [email]);
+  if (rows.length > 0) {
+    return true
+  }
+
+  return false
+}
 

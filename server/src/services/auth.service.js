@@ -5,6 +5,7 @@ import {
   sendOTPViaSMS,
   generateAccessToken,
   sendMail,
+  isUserExists
 } from "../utils/utils.js";
 import { logger } from "../common/logger.js";
 
@@ -15,8 +16,6 @@ export const signInByEmailIdService = async (email, password) => {
 
     if (rows.length === 0) {
       return {
-        // statusCode: 404,
-        success: false,
         message: "User not found with provided email",
       };
     }
@@ -24,11 +23,9 @@ export const signInByEmailIdService = async (email, password) => {
     const isMatched = await checkPassword(password, rows[0].password);
 
     if (!isMatched) {
-      return {
-        // statusCode: 401,
-        success: false,
-        message: "Invalid password",
-      };
+      const err = new Error("Invalid old password");
+      err.statusCode = 401;
+      throw err;
     }
 
     const userPayload = {
@@ -39,8 +36,6 @@ export const signInByEmailIdService = async (email, password) => {
     const accessToken = generateAccessToken(userPayload, "1d");
 
     return {
-      // statusCode: 200,
-      success: true,
       data: {
         accessToken,
       },
@@ -183,14 +178,25 @@ export const changePasswordService = async (
   }
 };
 
-export const sendInviteServices = async (targetEmail,userid) => {
+export const sendInviteServices = async ( targetEmail, userid ) => {
   try {
+    const isUser = await isUserExists(targetEmail)
+    if (isUser) {
+      return {
+        message :"User already exists"
+      }
+    }
+
+    const createdat = Date.now()
     const token = generateAccessToken({ targetEmail }, "24h");
 
     const inviteLink = `https://yourfrontend.com/accept-invite?token=${token}`;
 
-    const query = "SELECT username FROM users WHERE userid = $1";
-     const rows = await queryReturn(query, [userid]);
+    const linkQuery = "INSERT INTO invitelinks(email, invitedby, linktoken, createdat) VALUES (?, ?, ?, ?)";
+    await queryReturn(linkQuery, [targetEmail, userid ,token, createdat])
+
+    const query = "SELECT username FROM users WHERE userid = ?";
+    const rows = await queryReturn(query, [userid]);
 
 
     const html = `
@@ -265,7 +271,7 @@ export const sendInviteServices = async (targetEmail,userid) => {
 
     const mailOptions = {
       from: `"Tracker App" <${process.env.EMAIL_USER}>`,
-      to: email,
+      to: targetEmail,
       subject: "You’re invited to join!",
       html: html,
     };
