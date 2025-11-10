@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,7 @@ const formSchema = z
 type FormSchema = z.infer<typeof formSchema>;
 
 export const LoginPage = () => {
+  const navigate = useNavigate();
   const [stepNo, setStepNo] = useState(1);
   const [contactType, setContactType] = useState("email");
 
@@ -96,6 +97,7 @@ export const LoginPage = () => {
 
       const payload = { email: data.contact, password: data.password };
       await emailLogin(payload);
+      navigate("/");
     } else form.setError("password", { message: "Invalid Password" });
   };
   return (

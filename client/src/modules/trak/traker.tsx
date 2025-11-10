@@ -1,4 +1,3 @@
-
 export const Tracker = () => {
-  return <div>coming soon tracker</div>;
+  return <div>coming soon</div>;
 };
