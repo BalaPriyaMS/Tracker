@@ -191,7 +191,7 @@ export const sendInviteServices = async ( targetEmail, userid ) => {
     const createdat = Date.now()
     const token = generateAccessToken({ targetEmail }, "24h");
 
-    const inviteLink = `https://yourfrontend.com/accept-invite?token=${token}`;
+    const inviteLink = `http://localhost:5173/invite?token=${token}`;
 
     const linkQuery = "INSERT INTO invitelinks(email, invitedby, linktoken, createdat) VALUES (?, ?, ?, ?)";
     await queryReturn(linkQuery, [targetEmail, userid ,token, createdat])
