@@ -8,6 +8,10 @@ export const registerUserService = async(username, email, password, mobile) => {
         const userid = uuidv4();
         const createdat = Date.now();
 
+        if (mobile == ""){
+            mobile = null
+        }
+
         const hashPswd = hashPassword(password);
 
         const query = "INSERT INTO users (userid, username, email, password, mobile, createdat, updatedat) VALUES (?, ?, ? , ?, ?, ?, ?)";

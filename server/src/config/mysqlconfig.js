@@ -16,7 +16,8 @@ export const mysqlpool = mysql.createPool(connectionconfig);
 
 mysqlpool.getConnection((err, connection) => {
     if (err){
-        logger.error("Database connection failed:", err.stack);
+        logger.info(`Database connection failed:${err.stack}`);
+
         return
     }
     logger.info("Database connected successfully");
@@ -30,7 +31,7 @@ export function queryReturn(queryToRun, queryArg = []) {
                 logger.error("Query Run Error:", err);
                 return reject(err);
             }
-            logger.info("Query ran successfully:", queryToRun);
+            logger.info("Query ran successfully");
             resolve(results);
         });
     });
