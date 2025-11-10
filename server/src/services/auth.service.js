@@ -5,7 +5,8 @@ import {
   sendOTPViaSMS,
   generateAccessToken,
   sendMail,
-  isUserExists
+  isUserExists,
+  verifyToken
 } from "../utils/utils.js";
 import { logger } from "../common/logger.js";
 
@@ -23,7 +24,7 @@ export const signInByEmailIdService = async (email, password) => {
     const isMatched = await checkPassword(password, rows[0].password);
 
     if (!isMatched) {
-      const err = new Error("Invalid old password");
+      const err = new Error("Invalid password");
       err.statusCode = 401;
       throw err;
     }
@@ -213,7 +214,7 @@ export const sendInviteServices = async ( targetEmail, userid ) => {
                   <table cellpadding="0" cellspacing="0" border="0">
                     <tr>
                       <td style="vertical-align: middle; padding-right: 10px;">
-                        <img src="https://cdn-icons-png.flaticon.com/512/5501/5501371.png" width="28" height="28" alt="S-Mail Logo" />
+                        <img src="https://cdn-icons-png.flaticon.com/512/5501/5501371.png" width="28" height="28" alt="Tracker Logo" />
                       </td>
                       <td style="vertical-align: middle;">
                         <span style="font-size: 22px; font-weight: bold; color: #333;">
@@ -279,11 +280,48 @@ export const sendInviteServices = async ( targetEmail, userid ) => {
     await sendMail(mailOptions);
 
     return {
-      success: true,
       message: "Invitation link sent successfully",
     };
   } catch (err) {
     logger.error("Error in sendUserInviteServices:", err);
+    throw err;
+  }
+};
+
+export const verifyInviteTokenService = async (token) => {
+  try {
+    const { valid, decoded, message } = verifyToken(token);
+    if (!valid) {
+      return { success: false, message };
+    }
+
+    const targetEmail = decoded.targetEmail;
+
+    const query = `
+      SELECT email, invitedby, linktoken, createdat 
+      FROM invitelinks 
+      WHERE linktoken = ? AND email = ?;
+    `;
+    const rows = await queryReturn(query, [token, targetEmail]);
+
+    if (rows.length === 0) {
+      return { success: false, message: "Invitation not found or already used" };
+    }
+
+    const createdAt = Number(rows[0].createdat);
+    const now = Date.now();
+    if (now - createdAt > 24 * 60 * 60 * 1000) {
+      return { success: false, message: "Invitation link expired" };
+    }
+
+    return {
+      success: true,
+      message: "Invitation link is valid",
+      email: targetEmail,
+      invitedBy: rows[0].invitedby,
+    };
+  } catch (err) {
+    logger.error("Error in verifyInviteTokenService:", err);
     throw err;
   }
 };

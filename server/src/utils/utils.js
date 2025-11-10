@@ -109,6 +109,20 @@ export const sendMail = async (mailOptions) => {
   }
 };
 
+export const verifyToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return { valid: true, decoded };
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      return { valid: false, message: "Token expired" };
+    } else {
+      logger.warn("Invalid token verification:", err.message);
+      return { valid: false, message: "Invalid token" };
+    }
+  }
+};
+
 export const isUserExists = async (email) => {
   const query = "SELECT userid FROM users WHERE email = ?";
   const rows = queryReturn(query, [email]);
