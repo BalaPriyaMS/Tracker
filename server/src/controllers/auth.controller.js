@@ -28,12 +28,24 @@ export const signInByEmailId = async (req, res) => {
     const { email, password } = req.body;
     const resp = await AuthService.signInByEmailIdService(email, password);
 
+    if (resp?.data?.accessToken) {
+      res.cookie("access_token", resp.data.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Lax",
+        maxAge: 24 * 60 * 60 * 1000
+      });
+
+      delete resp.data.accessToken;
+    }
+
     return generalResponse(res, {
       statusCode: resp.statusCode || httpStatus.OK,
       err: null,
       data: resp.data || null,
-      message: resp.message || "Login attempt",
+      message: resp.message || "Login successful",
     });
+
   } catch (err) {
     return generalResponse(res, {
       statusCode: err.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
@@ -43,6 +55,7 @@ export const signInByEmailId = async (req, res) => {
     });
   }
 };
+
 
 export const signInByMobileService = async(req, res) => {
   try{
@@ -126,4 +139,36 @@ export const sentInvite = async (req, res) => {
     });
   }
 }
+
+export const verifyInviteToken = async (req, res) => {
+  try {
+    const { token } = req.query; 
+
+    if (!token) {
+      return generalResponse(res, {
+        statusCode: httpStatus.BAD_REQUEST,
+        err: "Missing token",
+        data: null,
+        message: "Invitation token is required",
+      });
+    }
+
+    const resp = await AuthService.verifyInviteTokenService(token);
+
+    return generalResponse(res, {
+      statusCode: httpStatus.OK ,
+      err: null,
+      data: null,
+      message: resp.message,
+    });
+
+  } catch (err) {
+    return generalResponse(res, {
+      statusCode: err.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
+      err: err.message || "Unexpected error occurred",
+      data: null,
+      message: "Failed to verify invitation token",
+    });
+  }
+};
 
