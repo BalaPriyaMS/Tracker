@@ -6,7 +6,7 @@ import {
   generateAccessToken,
   sendMail,
   isUserExists,
-  verifyToken
+  verifyToken,
 } from "../utils/utils.js";
 import { logger } from "../common/logger.js";
 
@@ -179,26 +179,27 @@ export const changePasswordService = async (
   }
 };
 
-export const sendInviteServices = async ( targetEmail, userid ) => {
+export const sendInviteServices = async (targetEmail, userid) => {
   try {
-    const isUser = await isUserExists(targetEmail)
+    const isUser = await isUserExists(targetEmail);
     if (isUser) {
       return {
-        message :"User already exists"
-      }
+        message: "User already exists",
+      };
     }
 
-    const createdat = Date.now()
+    const createdat = Date.now();
     const token = generateAccessToken({ targetEmail }, "24h");
 
     const inviteLink = `http://localhost:5173/invite?token=${token}`;
 
-    const linkQuery = "INSERT INTO invitelinks(email, invitedby, linktoken, createdat) VALUES (?, ?, ?, ?)";
-    await queryReturn(linkQuery, [targetEmail, userid ,token, createdat])
+    const linkQuery = `INSERT INTO invitelinks(email, invitedby, linktoken, createdat) 
+                       VALUES (?, ?, ?, ?) ON DUPLICATE KEY 
+                       UPDATE linktoken = VALUES(linktoken), createdat = VALUES(createdat);`;
+    await queryReturn(linkQuery, [targetEmail, userid, token, createdat]);
 
     const query = "SELECT username FROM users WHERE userid = ?";
     const rows = await queryReturn(query, [userid]);
-
 
     const html = `
     <div style="font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #333; background-color: #f5f7fa; padding: 40px 0;">
@@ -257,7 +258,7 @@ export const sendInviteServices = async ( targetEmail, userid ) => {
               <tr>
                 <td style="padding: 20px 30px; border-top: 1px solid #eee; background-color: #f9f9f9; text-align: center;">
                   <p style="margin: 0; font-size: 12px; color: #999;">
-                    This email was sent by <strong>S-Mail</strong>.<br/>
+                    This email was sent by <strong>Tracker</strong>.<br/>
                     Please do not reply directly to this message.
                   </p>
                 </td>
@@ -292,34 +293,31 @@ export const verifyInviteTokenService = async (token) => {
   try {
     const { valid, decoded, message } = verifyToken(token);
     if (!valid) {
-      return { success: false, message };
+      return { message };
     }
 
     const targetEmail = decoded.targetEmail;
-
     const query = `
       SELECT email, invitedby, linktoken, createdat 
       FROM invitelinks 
-      WHERE linktoken = ? AND email = ?;
+      WHERE email = ? AND isUsed = ?;
     `;
-    const rows = await queryReturn(query, [token, targetEmail]);
+    const rows = await queryReturn(query, [targetEmail, true]);
 
     if (rows.length === 0) {
-      return { success: false, message: "Invitation not found or already used" };
+      return { message: "Invitation not found or already used" };
     }
 
     const createdAt = Number(rows[0].createdat);
     const now = Date.now();
+
     if (now - createdAt > 24 * 60 * 60 * 1000) {
-      return { success: false, message: "Invitation link expired" };
+      const err = new Error("Invalid link expired");
+      err.statusCode = 401;
+      throw err;
     }
 
-    return {
-      success: true,
-      message: "Invitation link is valid",
-      email: targetEmail,
-      invitedBy: rows[0].invitedby,
-    };
+    return { message: "Invitation link is valid" };
   } catch (err) {
     logger.error("Error in verifyInviteTokenService:", err);
     throw err;

@@ -7,7 +7,8 @@ import {
         signInByEmailId, 
         signInByMobileService, 
         changePassword,
-        sentInvite
+        sentInvite,
+        verifyInviteToken
         } from "../controllers/auth.controller.js";
 
 const router = Router()
@@ -36,3 +37,6 @@ export default router
 router.post('/sent-invite', authenticateToken, function(req, res, next){
     utils.reqArgValidation(req, res, next, ["email"]);
 }, sentInvite);
+
+router.post('/verify-invitetoken', authenticateToken, verifyInviteToken);
+
