@@ -9,6 +9,7 @@ import {
   verifyToken,
 } from "../utils/utils.js";
 import { logger } from "../common/logger.js";
+import { v4 as uuidv4 } from 'uuid';
 
 export const signInByEmailIdService = async (email, password) => {
   try {
@@ -95,31 +96,142 @@ export const checkUserByEmailOrMobileService = async (contact) => {
   }
 };
 
-export const forgetPasswordService = async (
-  email,
-  newPassword,
-  confirmPassword
-) => {
+export const forgetPasswordService = async (email) => {
   try {
-    if (newPassword !== confirmPassword) {
-      return { message: "Both passwords must be the same" };
+    //Check user exists
+    const userQuery = "SELECT userid, username FROM users WHERE email = ?";
+    const rows = await queryReturn(userQuery, [email]);
+
+    if (rows.length === 0) {
+      const err = new Error("User not found with provided email");
+      err.statusCode = 404;
+      throw err;
     }
 
-    const hashPsswd = hashPassword(newPassword);
+    const userid = rows[0].userid;
+    const username = rows[0].username;
+   
+   
+    //Generate reset token
+    const id = uuidv4();
+    const createdat = Date.now();
+    const expiresat = createdat + 15 * 60 * 1000;
+    const token = generateAccessToken({ userid }, "15m");
 
-    const query = "UPDATE users SET password = ? WHERE email = ?";
-    const result = await queryReturn(query, [hashPsswd, email]);
+    const resetLink = `http://localhost:5173/reset-password?token=${token}`;
 
-    if (result.affectedRows === 0) {
-      return { message: "User not found with provided email" };
-    }
+    //Delete existing unused tokens
+    const tokenUpdateQuery = `UPDATE userpasswordresets SET isused=true WHERE userid=? AND isused=false;`
+    await queryReturn(tokenUpdateQuery, [userid]);
 
-    return { message: "Password updated successfully" };
+
+    //Store token 
+    const tokenQuery = `
+      INSERT INTO userpasswordresets (id, userid, token, createdat, expiresat)
+      VALUES (?, ?, ?, ?, ?)
+      `;
+
+    await queryReturn(tokenQuery, [
+      id,
+      userid,
+      token,
+      createdat,
+      expiresat
+    ]);
+
+    //Email template
+    const html = `
+    <div style="font-family: Arial, sans-serif; background-color: #f5f7fa; padding: 40px 0;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center">
+            <table width="600" style="background:#ffffff; border-radius:8px; padding:30px;">
+              <tr>
+                <td>
+                  <h2>Password Reset Request</h2>
+                  <p>Hello ${username},</p>
+                  <p>You requested to reset your password.</p>
+                  <p>
+                    <a href="${resetLink}"
+                      style="background:#eb4034; color:#fff; padding:12px 25px;
+                             text-decoration:none; border-radius:5px;">
+                      Reset Password
+                    </a>
+                  </p>
+                  <p>This link is valid for <strong>15 minutes</strong>.</p>
+                  <p>If you didn’t request this, please ignore this email.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+    `;
+
+    //Send email
+    await sendMail({
+      from: `"Tracker App" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset your password",
+      html
+    });
+
+    return { message: "Password reset link sent successfully" };
   } catch (err) {
     logger.error("Error in forgetPasswordService:", err);
     throw err;
   }
 };
+
+export const resetPasswordService = async(token, newPassword, confirmPassword) => {
+  try{
+    console.log(newPassword)
+    console.log(confirmPassword)
+    const query = `
+        SELECT userid, createdat from userpasswordresets WHERE token = ? AND isused = false;
+    `
+    const rows = await queryReturn(query, [token])
+
+     if (rows.length === 0) {
+      const err = new Error("Reset link invalid or already used");
+      err.statusCode = 401;
+      throw err;
+    }
+
+    const createdAt = Number(rows[0].createdat);
+    const now = Date.now();
+
+    if (now - createdAt > 15 * 60 * 1000) {
+      const err = new Error("Reset link expired");
+      err.statusCode = 401;
+      throw err;
+    }
+
+    if (newPassword !== confirmPassword){
+      console.log("hoi")
+      const err = new Error("Passwords do not match");
+      err.statusCode = 400;
+      throw err;
+    }
+    const hashedPassword = hashPassword(newPassword);
+
+    await queryReturn(
+      "UPDATE users SET password = ? WHERE userid = ?",
+      [hashedPassword, rows[0].userid]
+    );
+
+    await queryReturn(
+      "UPDATE userpasswordresets SET isused = true WHERE token = ?",
+      [token]
+    );
+
+    return { message: "Password updated successfully" };
+  } catch(err) {
+    logger.error("Error in resetPasswordService:", err);
+    throw err;
+  }
+}
 
 export const changePasswordService = async (
   email,
