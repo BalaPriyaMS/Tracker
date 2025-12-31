@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
-    userid CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    userid CHAR(36) PRIMARY KEY,
     username VARCHAR(300) NOT NULL,
     email VARCHAR(300) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -7,6 +7,17 @@ CREATE TABLE IF NOT EXISTS users (
     createdat BIGINT NOT NULL,
     updatedat BIGINT NOT Null
 );
+
+CREATE TABLE IF NOT EXISTS userpasswordresets (
+    id VARCHAR(36) PRIMARY KEY,
+    userid VARCHAR(36) NOT NULL,
+    token TEXT NOT NULL,
+    expiresat BIGINT NOT NULL,
+    isused BOOLEAN DEFAULT FALSE,
+    createdat BIGINT NOT NULL,
+    FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
+);
+
 
 CREATE TABLE IF NOT EXISTS roles (
     roleid VARCHAR(36) PRIMARY KEY,

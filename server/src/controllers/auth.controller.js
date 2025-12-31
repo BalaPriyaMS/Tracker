@@ -62,6 +62,17 @@ export const signInByMobileService = async(req, res) => {
       const {mobile} = req.body;
       const resp = await AuthService.signInByMobileService(mobile);
 
+      if (resp?.data?.accessToken) {
+        res.cookie("access_token", resp.data.accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "Lax",
+          maxAge: 24 * 60 * 60 * 1000
+        });
+
+        delete resp.data.accessToken;
+      }
+
       return generalResponse(res, {
         statusCode: httpStatus.OK,
         err: null,
@@ -78,15 +89,41 @@ export const signInByMobileService = async(req, res) => {
   }
 };
 
-export const forgetPassword = async (req, res) => {
-  try{
-    const {email, newpassword, confirmpassword} = req.body;
-    const resp = await AuthService.forgetPasswordService(email, newpassword, confirmpassword);
+export const signOut = async (req, res) => {
+  try {
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+    });
 
     return generalResponse(res, {
       statusCode: httpStatus.OK,
+      err: null,
       data: null,
-      mwssage: resp.message
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    return generalResponse(res, {
+      statusCode: err.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
+      err: err.message || "Unexpected error occurred",
+      data: null,
+      message: "Failed to logout",
+    });
+  }
+};
+
+
+export const forgetPassword = async (req, res) => {
+  try{
+    const {email} = req.body;
+    const resp = await AuthService.forgetPasswordService(email);
+
+    return generalResponse(res, {
+      statusCode: httpStatus.OK,
+      err: null,
+      data: resp.data || null,
+      message: resp.message || "Password reset link sent successfully"
     });
   } catch(err){
      return generalResponse(res, {
@@ -97,6 +134,29 @@ export const forgetPassword = async (req, res) => {
     });
   }
 };
+
+export const resetPassword = async(req, res) => {
+  try{
+    const {token} = req.query;
+    const {newpassword, confirmpassword} = req.body;
+
+    const resp = await AuthService.resetPasswordService(token, newpassword, confirmpassword);
+
+    return generalResponse(res,{
+      statusCode: httpStatus.OK,
+      err:null,
+      data: null,
+      message: resp.message || "Password updated successfully"
+    });
+  } catch (err){
+    return generalResponse(res, {
+      statusCode: err.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
+      err: err.message || "Unexpected error occurred",
+      data: null,
+      message: "Failed to reset password"
+    });
+  }
+}
 
 export const changePassword = async (req, res) => {
   try {
