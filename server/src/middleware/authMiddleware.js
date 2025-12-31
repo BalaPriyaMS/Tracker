@@ -2,7 +2,7 @@ import { generalResponse } from '../utils/utils.js';
 import jwt from 'jsonwebtoken';
 
 export const authenticateToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1] || req.body.token;
+  const token = req.cookies?.access_token;
 
   if (!token) {
     return generalResponse(res, {

@@ -117,6 +117,7 @@ export const verifyToken = (token) => {
     if (err.name === "TokenExpiredError") {
       return { valid: false, message: "Token expired" };
     } else {
+      console.log(err.message)
       logger.warn("Invalid token verification:", err.message);
       return { valid: false, message: "Invalid token" };
     }
