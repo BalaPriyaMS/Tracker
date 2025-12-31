@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 
-import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import EmailInvite from "@/modules/tracker/components/invite";
 
 export const TrackLayout = () => {
   return (
@@ -9,10 +9,7 @@ export const TrackLayout = () => {
       <header className="flex justify-between items-center shadow-sm px-6 py-3 border-b">
         <h1 className="font-semibold text-primary text-lg">Tracker</h1>
         <div className="flex items-center gap-4">
-          <Button title="Invite">
-            <Icons.invite className="w-9 h-9" />
-            <span className="hidden sm:inline">Invite</span>
-          </Button>
+          <EmailInvite />
           <Button>User</Button>
         </div>
       </header>

@@ -11,7 +11,7 @@ import { TrackLayout } from "./app/layouts/track-layout";
 import { ForgotPassword } from "./modules/auth/route/forgot-password";
 import { LoginPage } from "./modules/auth/route/login-page";
 import { RegisterPage } from "./modules/auth/route/register-page";
-import { Tracker } from "./modules/trak/traker";
+import { Tracker } from "./modules/tracker/components/tracker";
 
 const router = createBrowserRouter([
   {
