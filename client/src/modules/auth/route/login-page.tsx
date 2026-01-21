@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
+import { useAppDispatch } from "@/app/store/hook";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -20,6 +21,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { PasswordInput } from "@/components/ui/password-input";
+import { updateUserInfo } from "@/features/user-slice";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { emailSignInInputSchema, useEmailLogin } from "../api/emial.login";
@@ -46,7 +48,7 @@ const formSchema = z
           z.string().email().safeParse(value).success || /^\d{10}$/.test(value)
         );
       },
-      { message: "Please enter a valid email or 10-digit mobile number" }
+      { message: "Please enter a valid email or 10-digit mobile number" },
     ),
   })
   .merge(emailSignInInputSchema)
@@ -56,6 +58,9 @@ type FormSchema = z.infer<typeof formSchema>;
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+
+  const dispatch = useAppDispatch();
+
   const [stepNo, setStepNo] = useState(1);
   const [contactType, setContactType] = useState("email");
 
@@ -90,19 +95,32 @@ export const LoginPage = () => {
       }
     } else form.setError("contact", { message: "user not fount" });
   };
+
   const handleLogin = async () => {
     const data = form.getValues();
     if (contactType === "email") {
       console.log(data.email, "mail");
 
       const payload = { email: data.contact, password: data.password };
-      await emailLogin(payload);
-      navigate("/");
+      try {
+        await emailLogin(payload);
+        const res = {
+          contact: data.contact,
+        };
+
+        dispatch(updateUserInfo(res));
+
+        form.reset();
+        navigate("/");
+      } catch (error) {
+        console.log(error);
+      }
     } else form.setError("password", { message: "Invalid Password" });
   };
+
   return (
     <div className="flex justify-center bg-white rounded-lg w-1/2">
-      <Card className="bg-gradient-to-br from-[#fef2f2] via-[#ffedd4] to-[#ffc9c9] shadow-none m-1 p-10 border-none w-full h-96">
+      <Card className="bg-linear-to-br from-[#fef2f2] via-[#ffedd4] to-[#ffc9c9] shadow-none m-1 p-10 border-none w-full h-96">
         <p className="font-bold text-3xl">Welcome !</p>
         <div className="flex flex-col items-center space-y-6">
           <Form {...form}>

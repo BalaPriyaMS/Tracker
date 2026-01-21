@@ -8,6 +8,7 @@ import {
 
 import { AuthLayout } from "./app/layouts/auth-layout";
 import { TrackLayout } from "./app/layouts/track-layout";
+import { ProtectedRoute } from "./components/protected-route";
 import { ForgotPassword } from "./modules/auth/route/forgot-password";
 import { LoginPage } from "./modules/auth/route/login-page";
 import { RegisterPage } from "./modules/auth/route/register-page";
@@ -17,7 +18,16 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <TrackLayout />,
-    children: [{ path: "/", element: <Tracker /> }],
+    children: [
+      {
+        path: "/",
+        element: (
+          <ProtectedRoute>
+            <Tracker />
+          </ProtectedRoute>
+        ),
+      },
+    ],
   },
   {
     path: "/auth",
