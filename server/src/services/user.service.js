@@ -37,7 +37,7 @@ export const registerUserService = async(username, email, password, mobile) => {
 
 export const listUsersService = async() => {
     try{
-        const query = "SELECT * FROM users";
+        const query = "SELECT userid, username, email, mobile, createdat, updatedat FROM users";
         const rows = await queryReturn(query);
         return rows;
         
@@ -49,7 +49,7 @@ export const listUsersService = async() => {
 
 export const getUserByIdService = async(userid) => {
     try{
-        const query = "SELECT * FROM users WHERE userid = ?";
+        const query = "SELECT userid, username, email, mobile, createdat, updatedat FROM users WHERE userid = ?";
         const rows = await queryReturn(query, [userid]);
         if(rows.length === 0){
             const err = new Error("User not found");
