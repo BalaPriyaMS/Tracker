@@ -34,3 +34,31 @@ export const registerUserService = async(username, email, password, mobile) => {
     }
     
 };
+
+export const listUsersService = async() => {
+    try{
+        const query = "SELECT * FROM users";
+        const rows = await queryReturn(query);
+        return rows;
+        
+    } catch(err){
+        console.error("Error in listUsersService:", err);
+        throw err;
+    }
+}
+
+export const getUserByIdService = async(userid) => {
+    try{
+        const query = "SELECT * FROM users WHERE userid = ?";
+        const rows = await queryReturn(query, [userid]);
+        if(rows.length === 0){
+            const err = new Error("User not found");
+            err.statusCode = 404;
+            throw err;
+        }
+        return rows;
+    } catch(err){
+        console.error("Error in getUserByIdService:", err);
+        throw err;
+    }
+}
