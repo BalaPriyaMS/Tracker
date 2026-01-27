@@ -8,7 +8,7 @@ router.post('/create', function(req, res, next){
     utils.reqArgValidation(req, res, next, ["username", "email", "password"]);
 }, registerUser);
 
-router.post('/list', function(req, res, next){
+router.get('/list', function(req, res, next){
     utils.reqArgValidation(req, res, next, []);
 }, listUsers);
 
