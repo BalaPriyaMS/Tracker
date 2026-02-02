@@ -1,3 +1,9 @@
+import { GroupsDashboard } from "./dashboard/groups-container";
+
 export const Tracker = () => {
-  return <div>coming soon</div>;
+  return (
+    <div>
+      <GroupsDashboard />
+    </div>
+  );
 };

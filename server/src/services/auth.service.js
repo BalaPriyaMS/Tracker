@@ -1,15 +1,15 @@
+import { v4 as uuidv4 } from "uuid";
+import { logger } from "../common/logger.js";
 import { queryReturn } from "../config/mysqlconfig.js";
 import {
-  hashPassword,
   checkPassword,
-  sendOTPViaSMS,
   generateAccessToken,
-  sendMail,
+  hashPassword,
   isUserExists,
+  sendMail,
+  sendOTPViaSMS,
   verifyToken,
 } from "../utils/utils.js";
-import { logger } from "../common/logger.js";
-import { v4 as uuidv4 } from 'uuid';
 
 export const signInByEmailIdService = async (email, password) => {
   try {
@@ -110,8 +110,7 @@ export const forgetPasswordService = async (email) => {
 
     const userid = rows[0].userid;
     const username = rows[0].username;
-   
-   
+
     //Generate reset token
     const id = uuidv4();
     const createdat = Date.now();
@@ -121,23 +120,16 @@ export const forgetPasswordService = async (email) => {
     const resetLink = `http://localhost:5173/reset-password?token=${token}`;
 
     //Delete existing unused tokens
-    const tokenUpdateQuery = `UPDATE userpasswordresets SET isused=true WHERE userid=? AND isused=false;`
+    const tokenUpdateQuery = `UPDATE userpasswordresets SET isused=true WHERE userid=? AND isused=false;`;
     await queryReturn(tokenUpdateQuery, [userid]);
 
-
-    //Store token 
+    //Store token
     const tokenQuery = `
       INSERT INTO userpasswordresets (id, userid, token, createdat, expiresat)
       VALUES (?, ?, ?, ?, ?)
       `;
 
-    await queryReturn(tokenQuery, [
-      id,
-      userid,
-      token,
-      createdat,
-      expiresat
-    ]);
+    await queryReturn(tokenQuery, [id, userid, token, createdat, expiresat]);
 
     //Email template
     const html = `
@@ -174,7 +166,7 @@ export const forgetPasswordService = async (email) => {
       from: `"Tracker App" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Reset your password",
-      html
+      html,
     });
 
     return { message: "Password reset link sent successfully" };
@@ -184,16 +176,20 @@ export const forgetPasswordService = async (email) => {
   }
 };
 
-export const resetPasswordService = async(token, newPassword, confirmPassword) => {
-  try{
-    console.log(newPassword)
-    console.log(confirmPassword)
+export const resetPasswordService = async (
+  token,
+  newPassword,
+  confirmPassword
+) => {
+  try {
+    console.log(newPassword);
+    console.log(confirmPassword);
     const query = `
         SELECT userid, createdat from userpasswordresets WHERE token = ? AND isused = false;
-    `
-    const rows = await queryReturn(query, [token])
+    `;
+    const rows = await queryReturn(query, [token]);
 
-     if (rows.length === 0) {
+    if (rows.length === 0) {
       const err = new Error("Reset link invalid or already used");
       err.statusCode = 401;
       throw err;
@@ -208,18 +204,18 @@ export const resetPasswordService = async(token, newPassword, confirmPassword) =
       throw err;
     }
 
-    if (newPassword !== confirmPassword){
-      console.log("hoi")
+    if (newPassword !== confirmPassword) {
+      console.log("hoi");
       const err = new Error("Passwords do not match");
       err.statusCode = 400;
       throw err;
     }
     const hashedPassword = hashPassword(newPassword);
 
-    await queryReturn(
-      "UPDATE users SET password = ? WHERE userid = ?",
-      [hashedPassword, rows[0].userid]
-    );
+    await queryReturn("UPDATE users SET password = ? WHERE userid = ?", [
+      hashedPassword,
+      rows[0].userid,
+    ]);
 
     await queryReturn(
       "UPDATE userpasswordresets SET isused = true WHERE token = ?",
@@ -227,11 +223,11 @@ export const resetPasswordService = async(token, newPassword, confirmPassword) =
     );
 
     return { message: "Password updated successfully" };
-  } catch(err) {
+  } catch (err) {
     logger.error("Error in resetPasswordService:", err);
     throw err;
   }
-}
+};
 
 export const changePasswordService = async (
   email,
@@ -303,7 +299,7 @@ export const sendInviteServices = async (targetEmail, userid) => {
     const createdat = Date.now();
     const token = generateAccessToken({ targetEmail }, "24h");
 
-    const inviteLink = `http://localhost:5173/invite?token=${token}`;
+    const inviteLink = `http://localhost:5173/auth/login?invite=${token}`;
 
     const linkQuery = `INSERT INTO invitelinks(email, invitedby, linktoken, createdat) 
                        VALUES (?, ?, ?, ?) ON DUPLICATE KEY 
