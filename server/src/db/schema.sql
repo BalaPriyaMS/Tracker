@@ -42,3 +42,38 @@ CREATE TABLE IF NOT EXISTS invitelinks (
     FOREIGN KEY (invitedby) REFERENCES users(userid) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS `groups` (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    createdby TEXT NOT NULL,
+    updatedby TEXT NOT NULL,
+    createdat BIGINT NOT NULL,
+    updatedat BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS groupmembers (
+    id VARCHAR(36) PRIMARY KEY,
+    groupid TEXT NOT NULL,
+    userid TEXT NOT NULL,
+    roleid TEXT NOT NULL,
+    addedby TEXT NOT NULL,
+    updatedby TEXT NOT NULL,
+    createdat BIGINT NOT NULL,
+    updatedat BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS expenses (
+  id VARCHAR(36) PRIMARY KEY,
+  groupid TEXT NOT NULL,
+  category TEXT NOT NULL,
+  paidby TEXT NOT NULL,
+  description TEXT,
+  totalamount NUMERIC NOT NULL,
+  bills JSONB,
+  createdby TEXT NOT NULL,
+  updatedby TEXT NOT NULL,
+  createdat BIGINT NOT NULL,
+  updatedat BIGINT NOT NULL
+);
+
+
